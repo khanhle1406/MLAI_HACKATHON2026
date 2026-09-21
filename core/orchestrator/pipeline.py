@@ -32,6 +32,7 @@ from core.evidence.schema import (
 from core.fusion.dempster_shafer import fuse_single_cell
 from core.ingestion.parser import parse_file
 from core.profiling.column_profiler import profile_dataframe
+from core.assistant.report_generator import generate_assistant_report
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +308,20 @@ class AnalysisPipeline:
             "escalation_rate": round(escalate_count / max(len(decisions), 1), 4),
             "elapsed_seconds": round(elapsed, 2),
         }
+
+        # ── Assistant Narrative & Reasoning Report ──
+        try:
+            result["assistant_report"] = generate_assistant_report(
+                filename=metadata.get("original_filename", "dataset.csv"),
+                profile=result.get("profile"),
+                decisions=decisions,
+                evidence=result.get("evidence", []),
+                summary=result["summary"],
+            )
+        except Exception as e:
+            logger.warning(f"Failed to generate assistant report: {e}")
+            result["assistant_report"] = None
+
         result["status"] = "COMPLETED"
 
         logger.info(

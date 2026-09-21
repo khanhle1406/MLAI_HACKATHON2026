@@ -1,0 +1,21 @@
+employee_id,full_name,email,department,job_title,hire_date,salary,phone,bank_account,status
+E001,Nguyen Van An,an.nguyen@company.vn,Engineering,Senior Backend Engineer,2022-01-15,35000000,0901234567,1902837482910,Active
+E002, Tran Thi Binh ,binh.tran@company.vn,Human Resources,HR Business Partner,2022-03-20,22000000,0912345678,1902837482911,Active
+E003,Le Hoang Cuong,cuong.le@company.vn,Engineering,Fullstack Developer,15/04/2022,28000000,0923456789,1902837482912,Active
+E004,Pham Minh Duc,duc.pham@company.vn,Finance,Lead Financial Analyst,2022-05-10,32000000,0934567890,1902837482913,Active
+E005,Hoang Thi Em,em.hoang@company.vn,Human Resources,Recruiter,2022-06-05,N/A,0945678901,1902837482914,Active
+E006,Vo Van Phuc,phuc.vo@company.vn,Marketing,Digital Marketing Specialist,2022-07-15,24000000,,1902837482915,Active
+E007,Dang Thi Giang,giang.dang@company.vn,Enginering,Frontend Engineer,2022-08-20,26000000,0967890123,1902837482916,Active
+E008,Bui Quoc Hung,hung.bui@company.vn,Executive,Chief Executive Officer,2021-01-01,250000000,0978901234,1902837482917,Active
+E001,Nguyen Van An,an.nguyen@company.vn,Engineering,Senior Backend Engineer,2022-01-15,35000000,0901234567,1902837482910,Active
+E010,Ly Thi Thanh,-,Sales,Account Executive,2022-09-10,21000000,0989012345,1902837482918,active
+E011,Ngo Van Khoa,khoa.ngo@company.vn,Engineering,DevOps Engineer,2022-10-15,30000000,0990123456,1902837482919,Active
+E012,Do Thi Lan,lan.do@company.vn,Human Resources,HR Assistant,2022-11-01,16000000,0901234568,1902837482920,Actve
+E013, Truong Gia Huy ,huy.truong@company.vn,Data & AI,Senior AI Engineer,2023-01-05,42000000,0911223344,1902837482921,Active
+E014,Nguyen Mai Linh,linh.nguyen@company.vn,Data & AI,Data Scientist,05/02/2023,34000000,0922334455,1902837482922,Active
+E015,Vu Minh Tri,tri.vu@company.vn,Product,Product Manager,2023-03-01,38000000,0933445566,1902837482923,Active
+E016,Phan Hoang Yen,yen.phan@company.vn,Product,UI/UX Designer,2023-04-12,25000000,0944556677,1902837482924,Active
+E017,Dinh Quang Bao,bao.dinh@company.vn,Operations,Operations Specialist,2023-05-18,20000000,0955667788,1902837482925,Active
+E018,Cao Ngoc Diep,diep.cao@company.vn,Operations,Supply Chain Analyst,2023-06-25,UNKNOWN,0966778899,1902837482926,Active
+E019,Ha The Phong,phong.ha@company.vn,Security,Cybersecurity Engineer,2023-07-30,36000000,0977889900,1902837482927,Active
+E020,Ta Bich Ngoc,ngoc.ta@company.vn,Legal,Corporate Counsel,2023-08-15,35000000,0988990011,1902837482928,Active
