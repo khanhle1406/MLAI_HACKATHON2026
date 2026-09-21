@@ -183,6 +183,35 @@ export default function DatasetsPage() {
                     <p>{assistantReport.assistant_briefing}</p>
                   </div>
                 )}
+
+                {/* Deep Semantic Understanding Box */}
+                {assistantReport?.entity_concept && (
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-slate-950 to-slate-900 border border-cyan-500/30 space-y-2.5">
+                    <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider block">
+                      🎯 Bản Ghi Nhớ Đọc Hiểu Ngữ Nghĩa (Executive Semantic Memo)
+                    </span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 block font-semibold text-[11px]">Thực Thể:</span>
+                        <span className="text-white font-bold text-xs mt-0.5 block truncate">{assistantReport.entity_concept}</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 block font-semibold text-[11px]">Khóa Chính (ID):</span>
+                        <span className="text-cyan-300 font-mono font-bold text-xs mt-0.5 block truncate">{assistantReport.primary_key_column || "—"}</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 block font-semibold text-[11px]">Trục Thời Gian:</span>
+                        <span className="text-amber-300 font-mono font-bold text-xs mt-0.5 block truncate">{assistantReport.temporal_column || "—"}</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 block font-semibold text-[11px]">Trường Nhạy Cảm:</span>
+                        <span className="text-rose-300 font-mono font-bold text-[11px] mt-0.5 block truncate">
+                          {assistantReport.sensitive_columns?.length > 0 ? assistantReport.sensitive_columns.join(", ") : "Không có"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Decisions & Actions Section */}

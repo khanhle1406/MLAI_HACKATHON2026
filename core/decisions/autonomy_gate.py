@@ -152,44 +152,46 @@ def format_escalation_question(
     uncertainty_type: UncertaintyType,
     proposed_action: str | None = None,
 ) -> str:
-    """Generate a concrete, actionable question for the human reviewer.
+    """Generate a concrete, actionable question in Vietnamese for the human reviewer.
 
     Board A requirement: escalation must include a specific question,
     not just "please review this row."
     """
-    evidence_text = "\n".join(f"  - {e}" for e in evidence_summary)
+    evidence_text = "\n".join(f"  • {e}" for e in evidence_summary) if evidence_summary else "  • Phát hiện dấu hiệu mâu thuẫn từ bộ dò"
+    val_display = f"'{observed_value}'" if (observed_value and observed_value.strip()) else "(giá trị rỗng)"
 
     if uncertainty_type == UncertaintyType.FACTUAL:
         question = (
-            f"Row {row_id}, column '{column}': value = '{observed_value}'\n"
-            f"Issue: {issue_description}\n"
-            f"Evidence:\n{evidence_text}\n\n"
-            f"Question: Is this value correct, or should it be changed? "
-            f"The system cannot determine the correct value from available evidence."
+            f"Vị trí: Dòng {row_id}, Cột '{column}' | Giá trị hiện tại: {val_display}\n"
+            f"Vấn đề phát hiện: {issue_description or 'Dữ liệu mâu thuẫn hoặc thiếu thông tin đối soát'}\n"
+            f"Bằng chứng ghi nhận:\n{evidence_text}\n\n"
+            f"👉 Câu hỏi dành cho Chuyên viên: Giá trị này có chính xác về mặt thực tế không, hay cần phải điều chỉnh? "
+            f"Hệ thống không thể tự tiện suy đoán thông tin thực tế thiếu căn cứ từ các nguồn hiện có."
         )
     elif uncertainty_type == UncertaintyType.POLICY:
         question = (
-            f"Row {row_id}, column '{column}': value = '{observed_value}'\n"
-            f"Issue: {issue_description}\n"
-            f"Evidence:\n{evidence_text}\n\n"
-            f"Question: There is no approved policy covering this case. "
-            f"Should a policy be created? What should the rule be?"
+            f"Vị trí: Dòng {row_id}, Cột '{column}' | Giá trị hiện tại: {val_display}\n"
+            f"Vấn đề phát hiện: {issue_description or 'Trường hợp nằm ngoài quy chế'}\n"
+            f"Bằng chứng ghi nhận:\n{evidence_text}\n\n"
+            f"👉 Câu hỏi dành cho Chuyên viên: Tổ chức hiện chưa có quy chế/chính sách phê duyệt cho trường hợp này. "
+            f"Có nên áp dụng ngoại lệ cho bản ghi này không, và quy tắc xử lý chuẩn nên là gì?"
         )
     elif uncertainty_type == UncertaintyType.AUTHORITY:
-        action_text = f" ({proposed_action})" if proposed_action else ""
+        action_text = f" ('{proposed_action}')" if proposed_action else ""
         question = (
-            f"Row {row_id}, column '{column}': value = '{observed_value}'\n"
-            f"Issue: {issue_description}\n"
-            f"Evidence:\n{evidence_text}\n\n"
-            f"Question: The system has identified the appropriate action{action_text} "
-            f"but does not have authority to execute it. Do you authorize this action?"
+            f"Vị trí: Dòng {row_id}, Cột '{column}' | Giá trị hiện tại: {val_display}\n"
+            f"Vấn đề phát hiện: {issue_description or 'Dữ liệu tài chính/bảo mật nhạy cảm'}\n"
+            f"Bằng chứng ghi nhận:\n{evidence_text}\n\n"
+            f"👉 Câu hỏi dành cho Chuyên viên: Hệ thống đã xác định được hành động điều chỉnh phù hợp{action_text}, "
+            f"tuy nhiên hành động này vượt thẩm quyền của tác tử AI (ảnh hưởng tài chính/danh tính). "
+            f"Bạn có phê duyệt cho phép thực thi hành động này không?"
         )
     else:
         question = (
-            f"Row {row_id}, column '{column}': value = '{observed_value}'\n"
-            f"Issue: {issue_description}\n"
-            f"Evidence:\n{evidence_text}\n\n"
-            f"Question: Please review this case and decide the appropriate action."
+            f"Vị trí: Dòng {row_id}, Cột '{column}' | Giá trị hiện tại: {val_display}\n"
+            f"Vấn đề phát hiện: {issue_description}\n"
+            f"Bằng chứng ghi nhận:\n{evidence_text}\n\n"
+            f"👉 Câu hỏi dành cho Chuyên viên: Vui lòng xem xét trường hợp nghi vấn này và xác nhận quyết định xử lý phù hợp."
         )
 
     return question

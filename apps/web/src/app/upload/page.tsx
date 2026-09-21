@@ -259,12 +259,50 @@ export default function UploadPage() {
               </div>
             </div>
 
-            {/* Assistant Natural Language Message */}
-            <div className="p-5 rounded-xl bg-slate-800/50 border border-slate-700/60 text-slate-200 text-base leading-relaxed">
-              <p className="font-medium">
-                {assistantReport?.assistant_briefing ||
-                  `Tôi đã hoàn tất phân tích tệp ${result.filename}. Phát hiện ${result.summary?.total_decisions || 0} vấn đề cần lưu ý.`}
-              </p>
+            {/* Assistant Natural Language Message & Executive Understanding Memo */}
+            <div className="space-y-4">
+              <div className="p-5 rounded-xl bg-slate-800/50 border border-slate-700/60 text-slate-200 text-base leading-relaxed">
+                <p className="font-medium">
+                  {assistantReport?.assistant_briefing ||
+                    `Tôi đã hoàn tất phân tích tệp ${result.filename}. Phát hiện ${result.summary?.total_decisions || 0} vấn đề cần lưu ý.`}
+                </p>
+              </div>
+
+              {/* Deep Semantic Understanding Box */}
+              {assistantReport?.entity_concept && (
+                <div className="p-5 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800/60 border border-cyan-500/30 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                      🎯 Bản Ghi Nhớ Đọc Hiểu Ngữ Nghĩa (Executive Semantic Memo)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">Thực Thể Trung Tâm:</span>
+                      <span className="text-white font-bold text-sm mt-0.5 block">{assistantReport.entity_concept}</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">Khóa Định Danh (ID):</span>
+                      <span className="text-cyan-300 font-mono font-bold text-sm mt-0.5 block">{assistantReport.primary_key_column || "—"}</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">Trục Thời Gian:</span>
+                      <span className="text-amber-300 font-mono font-bold text-sm mt-0.5 block">{assistantReport.temporal_column || "—"}</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+                      <span className="text-slate-400 block font-semibold">Trường Nhạy Cảm / PII:</span>
+                      <span className="text-rose-300 font-mono font-bold text-xs mt-0.5 block truncate">
+                        {assistantReport.sensitive_columns?.length > 0 ? assistantReport.sensitive_columns.join(", ") : "Không có"}
+                      </span>
+                    </div>
+                  </div>
+                  {assistantReport.business_impact_context && (
+                    <p className="text-xs text-slate-300 italic border-t border-slate-800 pt-2">
+                      <strong>Tác động nghiệp vụ:</strong> {assistantReport.business_impact_context}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Quick Metrics Grid */}
@@ -435,21 +473,34 @@ export default function UploadPage() {
                         )}
                       </div>
 
-                      {/* Mechanism & Rationale Breakdown */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div className="p-4 rounded-xl bg-slate-800/30 border border-slate-800 space-y-1">
-                          <p className="font-bold text-cyan-400 uppercase tracking-wider">
-                            🔍 Cơ Chế Phát Hiện (Vì sao là lỗi?)
+                      {/* Mechanism, Risk & Rationale Breakdown (3 Pillars) */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 space-y-1.5">
+                          <p className="font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🔍</span>
+                            <span>Cơ Chế Thuật Toán</span>
                           </p>
-                          <p className="text-slate-300 leading-relaxed text-sm">
+                          <p className="text-slate-300 leading-relaxed text-xs">
                             {issue.mechanism_desc}
                           </p>
                         </div>
-                        <div className="p-4 rounded-xl bg-slate-800/30 border border-slate-800 space-y-1">
-                          <p className="font-bold text-emerald-400 uppercase tracking-wider">
-                            ⚖️ Cơ Chế Ra Quyết Định (Vì sao AUTO / ESCALATE?)
+                        
+                        <div className="p-4 rounded-xl bg-slate-800/40 border border-rose-500/20 space-y-1.5">
+                          <p className="font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🚨</span>
+                            <span>Tác Động Thực Tế Nếu Bỏ Qua</span>
                           </p>
-                          <p className="text-slate-300 leading-relaxed text-sm">
+                          <p className="text-slate-300 leading-relaxed text-xs">
+                            {issue.business_risk || "Có thể gây sai lệch trong các phép tổng hợp dữ liệu hoặc báo cáo thống kê."}
+                          </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-slate-800/40 border border-emerald-500/20 space-y-1.5">
+                          <p className="font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>⚖️</span>
+                            <span>Cơ Sở Quyết Định</span>
+                          </p>
+                          <p className="text-slate-300 leading-relaxed text-xs">
                             {issue.why_decision}
                           </p>
                         </div>

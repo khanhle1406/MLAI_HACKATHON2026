@@ -58,8 +58,9 @@ class DuplicateKeyDetector(BaseDetector):
                 dup_mask = series.is_duplicated()
                 dup_values = series.filter(dup_mask).unique().to_list()
 
+                df_with_idx = df.select([pl.int_range(0, pl.len()).alias("_row_idx"), pl.col(col)])
                 for dup_val in dup_values[:50]:  # Limit to first 50
-                    dup_rows = [i for i in range(n) if series[i] == dup_val]
+                    dup_rows = df_with_idx.filter(pl.col(col) == dup_val)["_row_idx"].to_list()
                     for row_idx in dup_rows:
                         evidence.append(EvidenceItem(
                             row_id=row_idx,
@@ -105,7 +106,11 @@ class FDViolationDetector(BaseDetector):
         evidence: list[EvidenceItem] = []
 
         # Convert to pandas for AutoCSV-LED compatibility
-        pdf = df.to_pandas()
+        # On big datasets (>10,000 rows), sample for fast FD mining
+        if len(df) > 10000:
+            pdf = df.sample(n=10000, seed=42).to_pandas()
+        else:
+            pdf = df.to_pandas()
         n = len(pdf)
 
         if n < FD_MIN_GROUP:

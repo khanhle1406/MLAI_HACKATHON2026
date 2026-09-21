@@ -185,8 +185,18 @@ class AnalysisPipeline:
 
             fusion_result = fuse_single_cell(fusion_inputs)
 
-            # Build DecisionContext
-            support = evidence_list[0].support if evidence_list else {}
+            # Extract support and repair signals from evidence list
+            repair_ev = next(
+                (e for e in evidence_list if e.support.get("expected_value") is not None),
+                evidence_list[0] if evidence_list else None,
+            )
+            obs_ev = next(
+                (e for e in evidence_list if e.support.get("observed_value") is not None),
+                evidence_list[0] if evidence_list else None,
+            )
+            support = repair_ev.support if repair_ev else {}
+            observed_val = obs_ev.support.get("observed_value", "") if obs_ev else ""
+
             # Check ALL evidence items for repair signals
             is_deterministic_repair = any(
                 e.support.get("repair_deterministic", False) for e in evidence_list
@@ -234,7 +244,7 @@ class AnalysisPipeline:
                 "dataset_id": dataset_id,
                 "row_id": row_id,
                 "column": column,
-                "old_value": str(support.get("observed_value", "")),
+                "old_value": str(observed_val),
                 "new_value": str(support.get("expected_value", "")) if decision == Decision.AUTO else None,
                 "decision": decision.value,
                 "risk_level": action_impact.value,
@@ -278,17 +288,31 @@ class AnalysisPipeline:
             elif decision == Decision.BLOCK:
                 block_count += 1
 
-            # Audit each decision
+            # Audit decision (up to 1,000 individual records to prevent event flood on big tables)
+            if len(decisions) <= 1000:
+                audit_ledger.record(
+                    decision.value,
+                    "system",
+                    dataset_id,
+                    decision_id=decision_record["decision_id"],
+                    details={
+                        "row_id": row_id,
+                        "column": column,
+                        "belief_error": fusion_result["belief_error"],
+                        "conflict": fusion_result["conflict"],
+                    },
+                )
+
+        if len(decisions) > 1000:
             audit_ledger.record(
-                decision.value,
+                "BATCH_DECISIONS",
                 "system",
                 dataset_id,
-                decision_id=decision_record["decision_id"],
                 details={
-                    "row_id": row_id,
-                    "column": column,
-                    "belief_error": fusion_result["belief_error"],
-                    "conflict": fusion_result["conflict"],
+                    "total_decisions": len(decisions),
+                    "auto_count": auto_count,
+                    "escalate_count": escalate_count,
+                    "block_count": block_count,
                 },
             )
 

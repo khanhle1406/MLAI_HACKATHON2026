@@ -42,6 +42,7 @@ out/
 
 # Storage
 storage/uploads/
+storage/cleaned/
 storage/versions/
 storage/*.db
 

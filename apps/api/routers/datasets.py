@@ -15,9 +15,48 @@ from core.orchestrator.pipeline import pipeline
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 
-# In-memory storage (will be replaced with DB)
+# In-memory storage (backed by disk persistence in storage/uploads)
 _datasets: dict[str, dict[str, Any]] = {}
 _analysis_results: dict[str, dict[str, Any]] = {}
+
+
+async def ensure_dataset_loaded(dataset_id: str) -> bool:
+    """Ensure dataset and analysis result are in memory, loading from disk if necessary."""
+    if dataset_id in _datasets and dataset_id in _analysis_results:
+        return True
+
+    upload_dir = settings.upload_path / dataset_id
+    if not upload_dir.exists():
+        return False
+
+    files = (
+        list(upload_dir.glob("*.csv"))
+        + list(upload_dir.glob("*.tsv"))
+        + list(upload_dir.glob("*.parquet"))
+        + list(upload_dir.glob("*.xlsx"))
+    )
+    if not files:
+        return False
+
+    target_path = files[0]
+    filename = target_path.name
+    with open(target_path, "rb") as f:
+        content = f.read()
+
+    result = await pipeline.analyze_file(target_path, dataset_id=dataset_id)
+    _datasets[dataset_id] = {
+        "id": dataset_id,
+        "filename": filename,
+        "file_format": target_path.suffix.lstrip(".").lower(),
+        "file_size": len(content),
+        "file_path": str(target_path),
+        "status": result.get("status", "UNKNOWN"),
+        "profile": result.get("profile"),
+        "summary": result.get("summary"),
+        "assistant_report": result.get("assistant_report"),
+    }
+    _analysis_results[dataset_id] = result
+    return True
 
 
 @router.post("", status_code=201)
@@ -67,6 +106,7 @@ async def upload_dataset(file: UploadFile = File(...)):
         "filename": file.filename,
         "file_format": suffix.lstrip("."),
         "file_size": len(content),
+        "file_path": str(file_path),
         "status": result.get("status", "UNKNOWN"),
         "profile": result.get("profile"),
         "summary": result.get("summary"),
@@ -144,6 +184,46 @@ async def list_sample_datasets():
             "badge": "Verify 5",
             "color": "rose",
         },
+        {
+            "id": "vng_zalopay_transactions",
+            "name": "💳 VNG ZaloPay Transactions (50,000 dòng)",
+            "description": "Dữ liệu mô phỏng giao dịch ZaloPay FinTech: QR, Ví, chuyển khoản, phát hiện gian lận ngoại lai 500M.",
+            "file": "vng_zalopay_transactions.csv",
+            "badge": "VNG Enterprise",
+            "color": "emerald",
+        },
+        {
+            "id": "hospital_dirty",
+            "name": "🏥 Hospital SOTA Paper Benchmark (1,000 dòng)",
+            "description": "Tập dữ liệu chuẩn y tế trong các bài báo SOTA (Raha, HoloClean, CleanML): Lỗi FDs, zipcodes, typo.",
+            "file": "hospital_dirty.csv",
+            "badge": "Paper SOTA",
+            "color": "blue",
+        },
+        {
+            "id": "flights_dirty",
+            "name": "✈️ Flights SOTA Paper Benchmark (2,376 dòng)",
+            "description": "Tập dữ liệu lịch trình bay chuẩn SOTA: Lỗi mâu thuẫn thời gian đến/đi và trạng thái hoãn chuyến.",
+            "file": "flights_dirty.csv",
+            "badge": "Paper SOTA",
+            "color": "cyan",
+        },
+        {
+            "id": "beers_dirty",
+            "name": "🍺 Beers SOTA Paper Benchmark (2,410 dòng)",
+            "description": "Tập dữ liệu sản phẩm chuẩn SOTA: Lỗi dung tích oz, độ cồn ABV và tên nhà sản xuất.",
+            "file": "beers_dirty.csv",
+            "badge": "Paper SOTA",
+            "color": "amber",
+        },
+        {
+            "id": "tax_dirty",
+            "name": "📊 Tax SOTA Paper Big Data (200,000 dòng)",
+            "description": "Tập dữ liệu thuế quy mô lớn (3 triệu cells) dùng đo lường thông lượng Big Data của các nghiên cứu quốc tế.",
+            "file": "tax_dirty.csv",
+            "badge": "SOTA 200k Rows",
+            "color": "rose",
+        },
     ]
     return {"samples": samples}
 
@@ -153,6 +233,10 @@ async def load_sample_dataset(sample_id: str):
     """Load and analyze a pre-packaged demo dataset in one click."""
     fixtures_dir = Path(__file__).resolve().parents[3] / "verify" / "fixtures"
     sample_file = fixtures_dir / f"{sample_id}.csv"
+    if not sample_file.exists():
+        benchmark_dir = Path(__file__).resolve().parents[3] / "benchmark" / "datasets"
+        sample_file = benchmark_dir / f"{sample_id}.csv"
+
     if not sample_file.exists():
         raise HTTPException(status_code=404, detail=f"Sample file not found: {sample_id}.csv")
 
@@ -173,6 +257,7 @@ async def load_sample_dataset(sample_id: str):
         "filename": f"{sample_id}.csv",
         "file_format": "csv",
         "file_size": len(content),
+        "file_path": str(target_path),
         "status": result.get("status", "UNKNOWN"),
         "profile": result.get("profile"),
         "summary": result.get("summary"),
@@ -248,3 +333,42 @@ async def delete_dataset(dataset_id: str):
     audit_ledger.record("DELETE", "user", dataset_id)
 
     return {"status": "deleted", "dataset_id": dataset_id}
+
+
+@router.post("/{dataset_id}/apply-repairs")
+@router.post("/repair/{dataset_id}")
+@router.post("/{dataset_id}/repair")
+async def apply_repairs_endpoint(dataset_id: str):
+    """Execute all safe AUTO repairs on a dataset and generate cleaned CSV."""
+    if dataset_id not in _analysis_results:
+        raise HTTPException(status_code=404, detail="Không tìm thấy kết quả phân tích cho bộ dữ liệu này")
+
+    analysis = _analysis_results[dataset_id]
+    dataset = _datasets.get(dataset_id, {})
+    file_path = dataset.get("file_path")
+    if not file_path or not Path(file_path).exists():
+        raise HTTPException(status_code=404, detail="Tệp dữ liệu gốc không tồn tại")
+
+    from core.ingestion.parser import parse_file
+    from core.repair.engine import apply_auto_repairs
+
+    df, _ = parse_file(Path(file_path))
+    decisions = analysis.get("decisions", [])
+    repaired_df, summary = apply_auto_repairs(df, decisions, dataset_id)
+    return summary
+
+
+@router.get("/download-cleaned/{dataset_id}")
+async def download_cleaned_dataset(dataset_id: str):
+    """Download the cleaned CSV file."""
+    from fastapi.responses import FileResponse
+    cleaned_path = Path("storage/cleaned") / f"{dataset_id}_cleaned.csv"
+    if not cleaned_path.exists():
+        raise HTTPException(status_code=404, detail="Tệp dữ liệu sạch chưa được tạo")
+
+    return FileResponse(
+        path=cleaned_path,
+        filename=f"{dataset_id}_cleaned.csv",
+        media_type="text/csv",
+    )
+

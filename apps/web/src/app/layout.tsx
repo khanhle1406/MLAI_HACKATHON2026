@@ -63,7 +63,14 @@ export default function RootLayout({
                   className="px-3.5 py-3 rounded-xl hover:bg-slate-800/70 text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm font-medium border border-transparent hover:border-slate-700/60 group"
                 >
                   <span className="text-lg group-hover:scale-110 transition-transform">📁</span>
-                  <span>Tải tệp & Trợ lý AI (Upload)</span>
+                  <span>Tải tệp & Báo cáo (Upload)</span>
+                </a>
+                <a
+                  href="/chat"
+                  className="px-3.5 py-3 rounded-xl hover:bg-slate-800/70 text-emerald-400 hover:text-white transition-all flex items-center gap-3 text-sm font-bold border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/50 group"
+                >
+                  <span className="text-lg group-hover:scale-110 transition-transform">🤖</span>
+                  <span>Trợ Lý Đối Thoại (AI Chat)</span>
                 </a>
                 <a
                   href="/datasets"

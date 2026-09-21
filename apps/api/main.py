@@ -76,12 +76,14 @@ async def root():
 
 
 # ── Import and register routers ──
-from apps.api.routers import datasets, verify, reviews, audit
+from apps.api.routers import datasets, verify, reviews, audit, chat
 
 app.include_router(datasets.router, prefix="/api")
 app.include_router(verify.router, prefix="/api")
 app.include_router(reviews.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+
 
 
 # ── System stats ──

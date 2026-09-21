@@ -49,20 +49,26 @@ class LLMClient:
     def __init__(
         self,
         api_key: str | None = None,
+        base_url: str | None = None,
         model: str = "gpt-4o-mini",
         mock_mode: bool = False,
         cache_enabled: bool = True,
     ):
-        self.model = model
-        self.mock_mode = mock_mode or not api_key
+        resolved_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
+        resolved_base = base_url or os.environ.get("OPENAI_BASE_URL")
+        self.model = model or os.environ.get("OPENAI_MODEL_PRIMARY", "gpt-4o-mini")
+        self.mock_mode = mock_mode or not resolved_key
         self.cache_enabled = cache_enabled
         self._client = None
 
         if not self.mock_mode:
             try:
                 from openai import OpenAI
-                self._client = OpenAI(api_key=api_key)
-                logger.info(f"LLM client initialized with model={model}")
+                client_kwargs = {"api_key": resolved_key}
+                if resolved_base:
+                    client_kwargs["base_url"] = resolved_base
+                self._client = OpenAI(**client_kwargs)
+                logger.info(f"LLM client initialized with model={self.model}, base_url={resolved_base}")
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI client: {e}. Using mock mode.")
                 self.mock_mode = True
@@ -74,9 +80,9 @@ class LLMClient:
         self,
         messages: list[dict[str, str]],
         model: str | None = None,
-        temperature: float = 0.0,
+        temperature: float = 0.2,
         max_tokens: int = 1024,
-        response_format_json: bool = True,
+        response_format_json: bool = False,
     ) -> dict[str, Any]:
         """Send a chat completion request.
 
