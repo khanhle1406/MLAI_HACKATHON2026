@@ -1,0 +1,13 @@
+employee_id,full_name,email,department,hire_date,salary,phone,status
+E001,Nguyen Van An,an.nguyen@company.vn,Engineering,2023-01-15,25000000,0901234567,Active
+E002, Tran Thi Binh ,binh.tran@company.vn,HR,2023-02-20,18000000,0912345678,Active
+E003,Le Hoang Cuong,cuong.le@company.vn,Engineering,15/03/2023,28000000,0923456789,Active
+E004,Pham Minh Duc,duc.pham@company.vn,Finance,2023-04-10,22000000,0934567890,Active
+E005,Hoang Thi Em,em.hoang@company.vn,HR,2023-05-05,N/A,0945678901,Active
+E006,Vo Van Phuc,phuc.vo@company.vn,Marketing,2023-06-15,19000000,,Active
+E007,Dang Thi Giang,giang.dang@company.vn,Enginering,2023-07-20,26000000,0967890123,Active
+E008,Bui Quoc Hung,hung.bui@company.vn,Finance,2023-08-01,150000000,0978901234,Active
+E001,Nguyen Van An,an.nguyen@company.vn,Engineering,2023-01-15,25000000,0901234567,Active
+E010,Ly Thi Thanh,-,Sales,2023-09-10,20000000,0989012345,active
+E011,Ngo Van Khoa,khoa.ngo@company.vn,Engineering,2023-10-15,27000000,0990123456,Active
+E012,Do Thi Lan,lan.do@company.vn,HR,2023-11-01,17000000,0901234568,Actve

@@ -1,0 +1,6 @@
+transaction_id,customer,amount,type,status
+TXN001,Nguyen Van A,5000000,payment,completed
+TXN002,Tran Thi B,12000000,payment,completed
+TXN003,Le Van C,8000000,refund,pending
+TXN004,Pham Thi D,3000000,payment,completed
+TXN005,Hoang Van E,15000000,payment,completed
